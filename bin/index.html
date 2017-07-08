@@ -11,14 +11,16 @@
 <!--		<script type="text/javascript" src="libs/js/zepto.js"></script>-->
 <!--		<script type="text/javascript" src="libs/js/zepto-extras.js"></script>-->
 		
-		<script type="text/javascript" src="libs/js/angular/angular.min.js"></script>
+		<!--<script type="text/javascript" src="libs/js/angular/angular.min.js"></script>
 		<script type="text/javascript" src="libs/js/angular/angular-touch.min.js"></script>
-		<script type="text/javascript" src="libs/js/angular/angular-route.min.js"></script>
+		<script type="text/javascript" src="libs/js/angular/angular-route.min.js"></script> -->
 <!--		<script type="text/javascript" src="libs/js/hammer.min.js"></script>-->
 <!--		<script type="text/javascript" src="libs/js/gestures.min.js"></script>-->
 		
+		<script src="https://unpkg.com/vue"></script>
+		<script src="http://requirejs.org/docs/release/2.3.3/comments/require.js"></script>
+
 		<script type="text/javascript" src="app/js/misc.js"></script>
-		<script type="text/javascript" src="app/js/app.js"></script>
 
 		<script type="text/javascript" src="app/js/classes/event-handler.js"></script> 
 		<script type="text/javascript" src="app/js/classes/character.js"></script> 
@@ -70,17 +72,19 @@
 </script>
 	</head>
 	<body ng-app="ZombieLabApp" ng-controller="zombieLabController" oncontextmenu="return false" ondragstart="return false" onselectstart="return false">
-		<div class="loading-overlay loading-in-progress" ng-class="{'loading-in-progress': model.loading.isLoading}">
-			<div class="loading-animation">
+		<div id="ZombieLabApp">
+			<div class="loading-overlay loading-in-progress" ng-class="{'loading-in-progress': model.loading.isLoading}">
+				<div class="loading-animation">
+				</div>
+			</div>
+			<div ng-view id="main-view">
+			</div>
+			<script type="text/ng-template" id="game-pause-modal.html">
+				<div>Game paused</div>
+			</script>
+			<div class="tutorial-overlay">
 			</div>
 		</div>
-		<div ng-view id="main-view">
-		</div>
-		<script type="text/ng-template" id="game-pause-modal.html">
-			<div>Game paused</div>
-		</script>
-		<div class="tutorial-overlay">
-		</div>
-
+		<script type="text/javascript" src="app/js/app.js"></script>
 	</body>
 </html>

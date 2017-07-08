@@ -1,6 +1,36 @@
 'use strict';
 
-angular.module('ZombieLabApp', ['ngRoute', 'ngTouch'])
+const mainMenu = {template: '<main-menu>main-menu</main-menu>'};
+const teamSetup = {template: '<div>team-setup</div>'};
+const game = {template: '<div>game</div>'};
+const other = {template: '<div>start</div>'};
+
+const routes = {
+  '/main-menu': mainMenu,
+  '/team-setup': teamSetup,
+  '/game': game
+};
+
+const ZombieLabApp = new Vue({
+  el: '#ZombieLabApp',
+  data: {
+    currentRoute: window.location.hash.replace('#','')
+  },
+  computed: {
+    ViewComponent () {
+      return routes[this.currentRoute] || other
+    }
+  },
+  render (h) { return h(this.ViewComponent) }
+});
+
+window.addEventListener('popstate', () => {
+  ZombieLabApp.currentRoute = window.location.hash.replace('#','')
+});
+
+
+
+/*angular.module('ZombieLabApp', ['ngRoute', 'ngTouch'])
 
 .config(function($routeProvider, $locationProvider) {
 	$routeProvider
@@ -49,4 +79,4 @@ angular.module('ZombieLabApp', ['ngRoute', 'ngTouch'])
 	document.addEventListener('deviceready', function () {
 		document.addEventListener('backbutton', $scope.enablePauseScreen, false);
 	}, false);
-});
+});*/
