@@ -1,23 +1,24 @@
 'use strict';
 
-angular.module('ZombieLabApp')
+//angular.module('ZombieLabApp')
 
-.service('gameService', function ($q, $timeout, equipmentService) {
-	var service = this;
-	var difficulty;
-	service.isGameOver = false;
+//.service('gameService', function ($q, $timeout, equipmentService) {
+const gameService = {
+	//service: this,
+	difficulty: null,
+	/*isGameOver = false;
 	service.isMainGame = false;
 	service.selectedItemSlot = null;
 	service.names = ['Alan', 'Arthur', 'Jake', 'Jane', 'Hilda', 'Thomas', 'Natalie', 'John', 'Martha', 'Ashley'];
 	service.availableNames = null;
 	service.tutorialEnabled = false;
-	service.gamePaused = 0;
-	service.gameLoading = {
+	service.gamePaused = 0;*/
+	gameLoading: {
 		isLoading: true
-	};
-	var loadingTransition = parseFloat($('.loading-overlay').css('transition') && $('.loading-overlay').css('transition').match(/[0-9]*\.?[0-9]s/) ? $('.loading-overlay').css('transition').match(/[0-9]*\.?[0-9]s/)[0] : 0.4);
+	},
+	loadingTransition: parseFloat($('.loading-overlay').css('transition') && $('.loading-overlay').css('transition').match(/[0-9]*\.?[0-9]s/) ? $('.loading-overlay').css('transition').match(/[0-9]*\.?[0-9]s/)[0] : 0.4),
 
-	service.togglePause = function () {
+	/*service.togglePause = function () {
 		service.gamePaused = service.gamePaused ? 0 : 1;
 	};
 	service.pause = function () {
@@ -29,28 +30,27 @@ angular.module('ZombieLabApp')
 	service.isPaused = function () {
 		return service.gamePaused > 0;
 	};
+*/
+	startLoading () {
+		gameService.gameLoading.isLoading = true;
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				resolve();
+			}, loadingTransition * 1000 + 100);
+		});
+	},
+	finishLoading (delay) {
+		return new Promise((resolve) => {
+			setTimeout(function () {
+				gameService.gameLoading.isLoading = false;
+				setTimeout(() => {
+					resolve();
+				}, loadingTransition * 1000);
+			}, delay);
+		})
+	}
 
-	service.startLoading = function () {
-		var defer = $q.defer();
-		service.gameLoading.isLoading = true;
-
-		$timeout(function () {
-			defer.resolve();
-		}, loadingTransition * 1000 + 100);
-		return defer.promise;
-	};
-	service.finishLoading = function (delay) {
-		var defer = $q.defer();
-		$timeout(function () {
-			service.gameLoading.isLoading = false;
-			$timeout(function () {
-				defer.resolve();
-			}, loadingTransition * 1000);
-		}, delay);
-		return defer.promise;
-	};
-
-	service.resetGame = function () {
+	/*service.resetGame = function () {
 		difficulty = 100;
 		service.availableNames = angular.copy(service.names);
 		equipmentService.removeAmmo();
@@ -106,6 +106,6 @@ angular.module('ZombieLabApp')
 		service.selectedItemSlot.item = null;
 	};
 
-	return service;
-});
+	return service;*/
+};
 

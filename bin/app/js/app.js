@@ -3,7 +3,7 @@
 const mainMenu = {template: '<main-menu>main-menu</main-menu>'};
 const teamSetup = {template: '<div>team-setup</div>'};
 const game = {template: '<div>game</div>'};
-const other = {template: '<div>start</div>'};
+const other = {template: '<start>start</start>'};
 
 const routes = {
   '/main-menu': mainMenu,
