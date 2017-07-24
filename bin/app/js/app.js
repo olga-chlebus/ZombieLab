@@ -1,7 +1,7 @@
 'use strict';
 
 const mainMenu = {template: '<main-menu>main-menu</main-menu>'};
-const teamSetup = {template: '<div>team-setup</div>'};
+const teamSetup = {template: '<team-setup>team-setup</team-setup>'};
 const game = {template: '<div>game</div>'};
 const other = {template: '<start>start</start>'};
 
@@ -21,7 +21,7 @@ const ZombieLabApp = new Vue({
       return routes[this.currentRoute] || other
     }
   },
-  render (h) { return h(this.ViewComponent) }
+  render (h) { console.log(this.ViewComponent); return h(this.ViewComponent) }
 });
 
 window.addEventListener('popstate', () => {

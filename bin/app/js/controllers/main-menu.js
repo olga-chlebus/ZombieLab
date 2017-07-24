@@ -11,6 +11,16 @@ Vue.component('main-menu', {
     methods:{
         continueGame(){
             console.log('hello');
+        },
+        startNewGame(tutorialEnabled) {
+            gameService.startLoading().then(function () {
+                gameService.resetGame();
+                characterService.buildNewRoster();
+                mapGeneratorService.createNewMap();
+                window.location.href = '#/team-setup';
+                gameService.finishLoading();
+                gameService.tutorialEnabled = tutorialEnabled;
+            });
         }
     },
     template: `

@@ -8,9 +8,9 @@ const gameService = {
 	difficulty: null,
 	/*isGameOver = false;
 	service.isMainGame = false;
-	service.selectedItemSlot = null;
-	service.names = ['Alan', 'Arthur', 'Jake', 'Jane', 'Hilda', 'Thomas', 'Natalie', 'John', 'Martha', 'Ashley'];
-	service.availableNames = null;
+	service.selectedItemSlot = null;*/
+	names: ['Alan', 'Arthur', 'Jake', 'Jane', 'Hilda', 'Thomas', 'Natalie', 'John', 'Martha', 'Ashley'],
+	/*service.availableNames = null;
 	service.tutorialEnabled = false;
 	service.gamePaused = 0;*/
 	gameLoading: {
@@ -36,7 +36,7 @@ const gameService = {
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve();
-			}, loadingTransition * 1000 + 100);
+			}, gameService.loadingTransition * 1000 + 100);
 		});
 	},
 	finishLoading (delay) {
@@ -45,20 +45,20 @@ const gameService = {
 				gameService.gameLoading.isLoading = false;
 				setTimeout(() => {
 					resolve();
-				}, loadingTransition * 1000);
+				}, gameService.loadingTransition * 1000);
 			}, delay);
 		})
+	},
+
+	resetGame() {
+		gameService.difficulty = 100;
+		gameService.availableNames = _.clone(gameService.names);
+		//equipmentService.removeAmmo(); //TODO
+		gameService.isGameOver = false;
+		gameService.isMainGame = true;
 	}
 
-	/*service.resetGame = function () {
-		difficulty = 100;
-		service.availableNames = angular.copy(service.names);
-		equipmentService.removeAmmo();
-		service.isGameOver = false;
-		service.isMainGame = true;
-	};
-
-	service.getNewName = function () {
+/*	service.getNewName = function () {
 		var idx = _.random(0, service.availableNames.length - 1);
 		var name = service.availableNames[idx];
 		service.availableNames.splice(idx, 1);

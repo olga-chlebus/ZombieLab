@@ -1,16 +1,14 @@
 'use strict';
 
-angular.module('ZombieLabApp')
+const characterService = {
+//	var service = this;
 
-.service('characterService', function (equipmentService, gameService, mapService) {
-	var service = this;
+//	service.rosterSize = 6;
+	roster: [],
+	team: [],
+	maxSkill: 5,
 
-	service.rosterSize = 6;
-	service.roster = [];
-	service.team = [];
-	service.maxSkill = 5;
-
-	service.createNewCharacter = function (archetype) {
+/*	service.createNewCharacter = function (archetype) {
 		var budget = _.random(80, 100);
 		var disposition = {
 			weapon: 10,
@@ -94,25 +92,25 @@ angular.module('ZombieLabApp')
 			skills: skills,
 			bestSkills: []
 		});
-	};
+	};*/
 
-	service.buildNewRoster = function () {
-		service.roster = [];
+	buildNewRoster() {
+		characterService.roster = [];
 		var selectedArchetypes = [];
-		_.each(service.archetypes, function (definition, name) {
+		_.each(characterService.archetypes, function (definition, name) {
 			selectedArchetypes.push(name);
 			selectedArchetypes.push(name);
 		});
-		while (selectedArchetypes.length > service.rosterSize) {
+		while (selectedArchetypes.length > characterService.rosterSize) {
 			var idx = _.random(0, selectedArchetypes.length - 1);
 			selectedArchetypes.splice(idx, 1);
 		}
 		_.each(selectedArchetypes, function (archetypeName) {
-			var character = service.createNewCharacter(service.archetypes[archetypeName]);
-			service.roster.push(character);
+			var character = characterService.createNewCharacter(characterService.archetypes[archetypeName]);
+			characterService.roster.push(character);
 		});
-	};
-
+	}
+/*
 	service.wipeTeam = function () {
 		service.team = [];
 	};
@@ -208,6 +206,6 @@ angular.module('ZombieLabApp')
 				service.startReloading(character);
 			}
 		}
-	};
-});
+	};*/
+};
 
