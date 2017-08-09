@@ -16,7 +16,7 @@ Vue.component('main-menu', {
             gameService.startLoading().then(function () {
                 gameService.resetGame();
                 characterService.buildNewRoster();
-                mapGeneratorService.createNewMap();
+                //mapGeneratorService.createNewMap(); //TODO
                 window.location.href = '#/team-setup';
                 gameService.finishLoading();
                 gameService.tutorialEnabled = tutorialEnabled;

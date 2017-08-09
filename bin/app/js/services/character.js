@@ -3,12 +3,12 @@
 const characterService = {
 //	var service = this;
 
-//	service.rosterSize = 6;
+	rosterSize: 6,
 	roster: [],
 	team: [],
 	maxSkill: 5,
 
-/*	service.createNewCharacter = function (archetype) {
+	createNewCharacter(archetype) {
 		var budget = _.random(80, 100);
 		var disposition = {
 			weapon: 10,
@@ -70,7 +70,7 @@ const characterService = {
 					increasedSkill = skill;
 				}
 			});
-			if (skills[increasedSkill] < service.maxSkill) {
+			if (skills[increasedSkill] < characterService.maxSkill) {
 				skills[increasedSkill]++;
 				disposition.skills -= 10;
 			}
@@ -92,7 +92,7 @@ const characterService = {
 			skills: skills,
 			bestSkills: []
 		});
-	};*/
+	},
 
 	buildNewRoster() {
 		characterService.roster = [];

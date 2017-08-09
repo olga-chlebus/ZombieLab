@@ -56,16 +56,16 @@ const gameService = {
 		//equipmentService.removeAmmo(); //TODO
 		gameService.isGameOver = false;
 		gameService.isMainGame = true;
+	},
+
+	getNewName() {
+		var idx = _.random(0, gameService.availableNames.length - 1);
+		var name = gameService.availableNames[idx];
+		gameService.availableNames.splice(idx, 1);
+		return name;
 	}
 
-/*	service.getNewName = function () {
-		var idx = _.random(0, service.availableNames.length - 1);
-		var name = service.availableNames[idx];
-		service.availableNames.splice(idx, 1);
-		return name;
-	};
-
-	service.gameOver = function () {
+/*	service.gameOver = function () {
 		service.isMainGame = false;
 		service.isGameOver = true;
 	};

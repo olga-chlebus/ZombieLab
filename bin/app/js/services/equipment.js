@@ -1,52 +1,50 @@
 'use strict';
 
-angular.module('ZombieLabApp')
+const equipmentService = {
+	//var service = this;
 
-.service('equipmentService', function () {
-	var service = this;
+	itemTypesByName: {},
+	itemTypes: {},
+	ammo: {},
 
-	service.itemTypesByName = {};
-	service.itemTypes = {};
-	service.ammo = {};
-
-	service.registerItem = function (item) {
+	registerItem(item) {
 		item.price = item.price || 0;
 		item.size = item.size || 'small';
 		item.isLarge = item.isLarge || false;
 		item.image = item.image || item.name.replace(/ /g, '_').toLowerCase();
-		service.itemTypes[item.category] = service.itemTypes[item.category] || {};
-		service.itemTypesByName[item.name] = item;
-		service.itemTypes[item.category][item.name] = item;
-	};
+		equipmentService.itemTypes[item.category] = equipmentService.itemTypes[item.category] || {};
+		equipmentService.itemTypesByName[item.name] = item;
+		equipmentService.itemTypes[item.category][item.name] = item;
+	},
 
-	service.registerItems = function (data) {
+	registerItems(data) {
 		_.each(data, function (items, category) {
 			_.each(items, function (item) {
 				item.category = category;
-				service.registerItem(item);
+				equipmentService.registerItem(item);
 			});
 		});
-	};
+	},
 
-	service.removeAmmo = function () {
-		_.each(service.ammo, function (qty, type) {
-			service.ammo[type] = 0;
+	removeAmmo() {
+		_.each(equipmentService.ammo, function (qty, type) {
+			equipmentService.ammo[type] = 0;
 		});
-	};
+	},
 
-	service.addAmmo = function (type, qty) {
-		service.ammo[type] = service.ammo[type] || 0;
-		service.ammo[type] += qty;
-	};
+	addAmmo(type, qty) {
+		equipmentService.ammo[type] = equipmentService.ammo[type] || 0;
+		equipmentService.ammo[type] += qty;
+	},
 
-	service.newItemByName = function (itemName) {
-		if (!service.itemTypesByName[itemName]) {
+	newItemByName(itemName) {
+		if (!equipmentService.itemTypesByName[itemName]) {
 			throw new Error('No such item as ' + itemName);
 		}
-		return service.newItem(service.itemTypesByName[itemName]);
-	};
+		return equipmentService.newItem(equipmentService.itemTypesByName[itemName]);
+	},
 
-	service.newItem = function (itemModel) {
+	newItem(itemModel) {
 		var newItem = new Item({
 			model: itemModel
 		});
@@ -56,5 +54,5 @@ angular.module('ZombieLabApp')
 			newItem.charges = itemModel.charges;
 		}
 		return newItem;
-	};
-});
+	}
+};

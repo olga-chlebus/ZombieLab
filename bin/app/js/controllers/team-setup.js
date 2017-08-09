@@ -11,14 +11,15 @@ Vue.component('team-setup', {
 	created(){
 		if (characterService.roster.length === 0) {
 			//$location.path('main-menu');
+			console.log('Navigating back to main menu...');
 			window.location.href = '#/main-menu';
 		}
 	},
 	methods: {
 		selectCharacter(character) {
-			if ($scope.model.charactersSelectedCount < $scope.model.targetTeamSize || character.selected) {
+			if (this.charactersSelectedCount < this.targetTeamSize || character.selected) {
 				character.selected = !character.selected;
-				$scope.model.charactersSelectedCount += character.selected ? +1 : -1;
+				this.charactersSelectedCount += character.selected ? +1 : -1;
 			}
 		},
 		startGame() {
@@ -33,20 +34,20 @@ Vue.component('team-setup', {
 			});
 		}
 	},
-	template: `<div>test</div>`
-		/*<div class="team-setup" ng-init="init();">
+	template: //`<div>test</div>`
+		`<div class="team-setup" ng-init="init();">
 			<div class="characters">
-				<div class="character-wrapper" ng-repeat="character in model.roster" ng-click="selectCharacter(character);" ng-class="{'selected': character.selected}">
-					<character-panel character="character" disable-items="true"></character-panel>
+				<div class="character-wrapper" v-for="character in roster" @click="selectCharacter(character);" :class="{selected: character.selected}">
+					<character-panel :character="character" :disable-items="true"></character-panel>
 					<div class="skills">
-						<skill-bar ng-repeat="(skill, value) in character.skills" skill="skill" value="value"></skill-bar>
+						<skill-bar v-for="(value, skill) in character.skills" :skill="skill" :value="value"></skill-bar>
 					</div>
 				</div>
 			</div>
-			<div>Team members selected: {{model.charactersSelectedCount}} / {{model.targetTeamSize}}
-				<button class="start-game" ng-click="startGame();" ng-disabled="model.charactersSelectedCount != model.targetTeamSize">
+			<div>Team members selected: {{charactersSelectedCount}} / {{targetTeamSize}}
+				<button class="start-game" @click="startGame();" :disabled="charactersSelectedCount != targetTeamSize">
 					Go!
 				</button>
 			</div>
-		</div>`*/
+		</div>`
 });

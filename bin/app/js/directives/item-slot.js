@@ -1,19 +1,16 @@
 'use strict';
 
-angular.module('ZombieLabApp')
-
-.directive('itemSlot', function ($timeout, gameService, characterService, modalService, mapService) {
+Vue.component('itemSlot', {
+	props: ['itemSlot','slotType','character','allowedLarge','disabled'],
+	//template: 'partials/directives/item-slot.html', //TODO
+	data(){return {
+		dragStart: {
+			x: null,
+			y: null
+		}
+	}},
+//TODO
 	return {
-		restrict: 'E',
-		replace: true,
-		templateUrl: 'partials/directives/item-slot.html',
-		scope: {
-			itemSlot: '=',
-			slotType: '@',
-			character: '=',
-			allowedLarge: '@',
-			disabled: '='
-		},
 		controller: function ($scope, $element) {
 			var controller = this;
 			
@@ -25,13 +22,6 @@ angular.module('ZombieLabApp')
 					$scope.itemSlot.slotType = $scope.slotType;
 				}
 			});
-			$scope.model = {
-				dragStart: {
-					x: null,
-					y: null
-				}
-			};
-
 			$scope.itemDroppable = function () {
 				return gameService.isMainGame && $scope.itemSlot.character;
 			};
