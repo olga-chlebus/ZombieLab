@@ -15,7 +15,7 @@ Vue.component('character-panel', {
 	},
 	template: `
 		<div class="character-panel" :class="{dead: !character.alive, inactive: !character.active}">
-			<div class="image" @hold="characterHoldAction();" @click="characterClickAction();">
+			<div class="image" @dblclick="characterHoldAction();" @click="characterClickAction();">
 				<div class="high-skills">
 					<img v-for="skill in character.bestSkills" :src="'imgs/skills/' + skill + '.png'" />
 				</div>
