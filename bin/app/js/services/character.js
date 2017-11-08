@@ -109,14 +109,14 @@ const characterService = {
 			var character = characterService.createNewCharacter(characterService.archetypes[archetypeName]);
 			characterService.roster.push(character);
 		});
-	}
-/*
-	service.wipeTeam = function () {
-		service.team = [];
-	};
+	},
 
-	service.addToTeam = function (character) {
-		service.team.push(character);
+	wipeTeam() {
+		characterService.team = [];
+	},
+
+	addToTeam(character) {
+		characterService.team.push(character);
 		_.each(['weapon', 'itemSmall', 'itemLarge'], function (slotName) {
 			if (character[slotName].item && character[slotName].item.model.startingAmmo) {
 				_.each(character[slotName].item.model.startingAmmo, function (qty, type) {
@@ -125,16 +125,10 @@ const characterService = {
 				});
 			}
 		});
-		service.recalculateBestSkills();
-	};
+		characterService.recalculateBestSkills();
+	},
 
-	service.getAliveMembers = function () {
-		return _.filter(service.team,  function (character) {
-			return character.alive;
-		});
-	};
-
-	service.recalculateBestSkills = function () {
+	recalculateBestSkills() {
 		var skills = {
 			weapons: {
 				characters: [],
@@ -153,7 +147,7 @@ const characterService = {
 				value: 0
 			}
 		};
-		_.each(service.team, function (character) {
+		_.each(characterService.team, function (character) {
 			character.bestSkills = [];
 			_.each(character.skills, function (value, skill) {
 				if (value == skills[skill].value) {
@@ -171,6 +165,13 @@ const characterService = {
 			_.each(info.characters, function (character) {
 				character.bestSkills.push(skill);
 			});
+		});
+	}
+
+/*
+	service.getAliveMembers = function () {
+		return _.filter(service.team,  function (character) {
+			return character.alive;
 		});
 	};
 

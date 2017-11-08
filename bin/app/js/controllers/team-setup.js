@@ -30,7 +30,7 @@ Vue.component('team-setup', {
 						characterService.addToTeam(character);
 					}
 				});
-				$location.path('game');
+				window.location.href = '#/game';
 			});
 		}
 	},

@@ -34,3 +34,25 @@
 		</div>
 	</script>
 </div>
+
+        <!--<script type="text/ng-template" id="item-info-modal.html">
+            <div class="item-info-modal clearfix">
+                <h3>{{itemSlot && itemSlot.item && itemSlot.item.model.name}}</h3>
+                <div class="additional-info">
+                    <img v-if="itemSlot && itemSlot.item" class="item-image" :src="'imgs/items/' + itemSlot.item.model.category + '/' + itemSlot.item.model.image + '.png'" />
+                    <div class="recommended-skill" v-show="itemSlot && itemSlot.item && itemSlot.item.model.skill">
+                        <div>
+                            Recommended skill:<br/>
+                            <skill-bar skill="itemSlot && itemSlot.item && itemSlot.item.model.skill" value="itemSlot && itemSlot.item && itemSlot.item.model.skillRequired"></skill-bar>
+                        </div>
+                        <div v-show="itemSlot && itemSlot.item && itemSlot.item.model.ammoType">
+                            Ammo used:<br/>
+                            <img v-if="itemSlot && itemSlot.item" class="ammo-image" :src="'imgs/items/ammo/' + itemSlot.item.model.ammoType + '.png'" />
+                        </div>
+                    </div>
+                </div>
+                <div class="description">{{itemSlot && itemSlot.item && itemSlot.item.model.description}}</div>
+                <button class="drop-button button" ng-show="itemDroppable();" ng-disabled="itemSlot.inUse" ng-click="dropItem();$close();">DROP</button>
+                <div ng-click="$close();" class="modal-close">X</div>
+            </div>
+        </script>-->

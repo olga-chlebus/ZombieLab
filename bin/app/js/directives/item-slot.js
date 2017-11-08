@@ -8,10 +8,11 @@ Vue.component('itemSlot', {
             y: null
         }
     }},
-    /*created(){
-        console.log('Item: ');
-        console.log(this.itemSlot.item);
-    },*/
+    created(){
+        //console.log('Item: ');
+        //console.log(this.itemSlot.item);
+        //console.log(this.itemSlot);
+    },
     methods: {
         isSelected() {
             return this.itemSlot && gameService.selectedItemSlot === this.itemSlot;
@@ -57,41 +58,20 @@ Vue.component('itemSlot', {
 
     },
     template: `
-    <div :class="['item-slot', slotType, {selected: isSelected()}]" @dblclick="showItemInfo();">
-        <div class="item-slot-inner-wrapper" @click="click();">
-            <div class="weapon-hit">{{itemSlot.item.model.sound}}</div>
+    <div :class="['item-slot', slotType, {selected: isSelected()}]" @dblclick="showItemInfo()">
+        <div class="item-slot-inner-wrapper" @click="click()">
+            <div class="weapon-hit">{{itemSlot && itemSlot.item && itemSlot.item.model.sound}}</div>
             <div class="weapon-miss">MISS!</div>
             <div class="item">
-                <div class="ammo" data-ng-show="itemSlot.item.model.clipSize">{{itemSlot.item.ammo}}</div>
-                <div class="charges" data-ng-show="itemSlot.item.model.charges">{{itemSlot.item.charges}}</div>
-                <div class="quantity" data-ng-show="itemSlot.item.quantity">{{itemSlot.item.quantity}}</div>
-                <div class="item-text reloading" ng-show="slotType === 'weapon' &amp;&amp; character.isReloading();">RELOAD</div>
-                <div class="item-text hold-fire" ng-show="slotType === 'weapon' &amp;&amp; itemSlot.item.isWeapon() &amp;&amp; character.holdFire &amp;&amp; !character.isReloading();">HOLD</div>
-                <img class="item-image" ng-if="itemSlot.item" :src="'imgs/items/' + itemSlot.item.model.category + '/' + itemSlot.item.model.image + '.png'" />
+                <div class="ammo" v-show="itemSlot && itemSlot.item && itemSlot.item.model.clipSize">{{itemSlot && itemSlot.item && itemSlot.item.ammo}}</div>
+                <div class="charges" v-show="itemSlot && itemSlot.item && itemSlot.item.model.charges">{{itemSlot && itemSlot.item && itemSlot.item.charges}}</div>
+                <div class="quantity" v-show="itemSlot && itemSlot.item && itemSlot.item.quantity">{{itemSlot && itemSlot.item && itemSlot.item.quantity}}</div>
+                <div class="item-text reloading" v-show="slotType === 'weapon' && character.isReloading()">RELOAD</div>
+                <div class="item-text hold-fire" v-show="slotType === 'weapon' && itemSlot && itemSlot.item && itemSlot.item.isWeapon() && character.holdFire && !character.isReloading()">HOLD</div>
+                <img class="item-image" v-if="itemSlot && itemSlot.item" :src="'imgs/items/' + itemSlot.item.model.category + '/' + itemSlot.item.model.image + '.png'" />
             </div>
         </div>
 
-        <script type="text/ng-template" id="item-info-modal.html">
-            <div class="item-info-modal clearfix">
-                <h3>{{itemSlot.item.model.name}}</h3>
-                <div class="additional-info">
-                    <img class="item-image" :src="'imgs/items/' + itemSlot.item.model.category + '/' + itemSlot.item.model.image + '.png'" />
-                    <div class="recommended-skill" ng-show="itemSlot.item.model.skill">
-                        <div>
-                            Recommended skill:<br/>
-                            <skill-bar skill="itemSlot.item.model.skill" value="itemSlot.item.model.skillRequired"></skill-bar>
-                        </div>
-                        <div data-ng-show="itemSlot.item.model.ammoType">
-                            Ammo used:<br/>
-                            <img class="ammo-image" :src="'imgs/items/ammo/' + itemSlot.item.model.ammoType + '.png'" />
-                        </div>
-                    </div>
-                </div>
-                <div class="description">{{itemSlot.item.model.description}}</div>
-                <button class="drop-button button" ng-show="itemDroppable();" ng-disabled="itemSlot.inUse" ng-click="dropItem();$close();">DROP</button>
-                <div ng-click="$close();" class="modal-close">X</div>
-            </div>
-        </script>
     </div>`//,
 //TODO
     /*return {
