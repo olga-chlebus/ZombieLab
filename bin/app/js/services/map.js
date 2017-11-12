@@ -1,144 +1,140 @@
 'use strict';
 
-angular.module('ZombieLabApp')
-
-.service('mapService', function ($timeout, eventService) {
-	var directionOffsets = {
+const mapService = {
+	directionOffsets: {
 		'N': [0, -1],
 		'S': [0, 1],
 		'E': [1, 0],
 		'W': [-1, 0]
-	}
+	},
+	directions: ['N', 'E', 'S', 'W'],
+	tileSize: 20, // Needed for the camera
+	map: [],
+	areas: [],
+	paths: [],
+	spawners: [],
+	mapSizeX: 10,
+	mapSizeY: 8,
+	startTile: null,
+	finishTile: null,
+	roomCount: 0,
+	areaCount: 0,
+	mapMargins: 2, // determines start/finish locations distance from borders
+	teamLocation: null,
+	validTargets: [],
+	teamSteps: 10,
 
-	var service = this;
-	service.directions = ['N', 'E', 'S', 'W'];
-	service.tileSize; // Needed for the camera
-	service.map = [];
-	service.areas = [];
-	service.paths = [];
-	service.spawners = [];
-	service.mapSizeX = 10;
-	service.mapSizeY = 8;
-	service.startTile = null;
-	service.finishTile = null;
-	service.roomCount = 0;
-	service.areaCount = 0;
-	service.mapMargins = 2; // determines start/finish locations distance from borders
-	service.teamLocation = null;
-	service.validTargets = [];
-	service.teamSteps = 10;
-
-	service.getTileElement = function (tile) {
+	getTileElement (tile) {
 		return $('.map .column').eq(tile.x).find('.tile').eq(tile.y);
-	};
+	},
 
-	service.getTileSize = function () {
-		if (!service.tileSize) {
-			service.tileSize = $('.tile').outerHeight();
+	getTileSize () {
+		if (!mapService.tileSize) {
+			mapService.tileSize = $('.tile').outerHeight();
 		}
-		return service.tileSize;
-	};
+		return mapService.tileSize;
+	},
 
-	service.getAllAreas = function () {
-		return service.areas;
-	};
+	getAllAreas () {
+		return mapService.areas;
+	},
 
-	service.getNeighbouringAreas = function (x, y) {
+	getNeighbouringAreas (x, y) {
 		var result = [];
-		if (service.map[x+1]) result.push(service.map[x+1][y]);
-		if (service.map[x-1]) result.push(service.map[x-1][y]);
-		if (service.map[x][y+1]) result.push(service.map[x][y+1]);
-		if (service.map[x][y-1]) result.push(service.map[x][y-1]);
+		if (mapService.map[x+1]) result.push(mapService.map[x+1][y]);
+		if (mapService.map[x-1]) result.push(mapService.map[x-1][y]);
+		if (mapService.map[x][y+1]) result.push(mapService.map[x][y+1]);
+		if (mapService.map[x][y-1]) result.push(mapService.map[x][y-1]);
 		result = _.filter(result, function (tile) {
 			return tile.area;
 		});
 		return result;
-	};
+	},
 
-	service.getAccessibleAreas = function (tile, onlyOpen) {
+	getAccessibleAreas (tile, onlyOpen) {
 		var result = {};
 		_.each(directionOffsets, function (offset, direction) {
-			if (tile[direction] && (!onlyOpen || service.isOpen(direction, tile))) {
-				result[direction] = service.map[tile.x + offset[0]][tile.y + offset[1]];
+			if (tile[direction] && (!onlyOpen || mapService.isOpen(direction, tile))) {
+				result[direction] = mapService.map[tile.x + offset[0]][tile.y + offset[1]];
 			}
 		});
 		return result;
-	};
+	},
 
-	service.moveTeam = function (tile) {
-		if (service.teamLocation) {
-			service.teamLocation.teamPresent = false;
-			service.teamLocation.teamHeat = service.teamSteps;
+	moveTeam (tile) {
+		if (mapService.teamLocation) {
+			mapService.teamLocation.teamPresent = false;
+			mapService.teamLocation.teamHeat = mapService.teamSteps;
 		}
-		service.teamLocation = tile;
-		service.teamSteps++;
-		service.teamLocation.teamHeat = service.teamSteps;
-		service.teamLocation.teamPresent = true;
-		service.checkVisibility();
-		service.calculateEnemyPaths();
+		mapService.teamLocation = tile;
+		mapService.teamSteps++;
+		mapService.teamLocation.teamHeat = mapService.teamSteps;
+		mapService.teamLocation.teamPresent = true;
+		mapService.checkVisibility();
+		mapService.calculateEnemyPaths();
 		eventService.fireTeamMove('test', 5);
-	};
+	},
 
-	service.moveEnemy = function (enemy, tileTo) {
+	moveEnemy (enemy, tileTo) {
 		enemy.tile.enemies = _.without(enemy.tile.enemies, _.findWhere(enemy.tile.enemies, enemy));
 		tileTo.enemies.push(enemy);
 		enemy.tile = tileTo;
-		service.checkVisibility();
-	};
+		mapService.checkVisibility();
+	},
 
-	service.registerValidTargets = function (tile, distance) {
+	registerValidTargets (tile, distance) {
 		if (!tile.isLit()) {
 			return;
 		}
 		_.each(tile.enemies, function (enemy) {
 			if (enemy.health > 0) {
-				service.validTargets.push({
+				mapService.validTargets.push({
 					tile: tile,
 					enemy: enemy,
 					distance: distance
 				});
 			}
 		});
-	};
+	},
 
-	service.checkVisibility = function () {
-		for (var x = 0; x < service.mapSizeX; x++) {
-			for (var y = 0; y < service.mapSizeY; y++) {
-				service.map[x][y].visible = false;
+	checkVisibility () {
+		for (var x = 0; x < mapService.mapSizeX; x++) {
+			for (var y = 0; y < mapService.mapSizeY; y++) {
+				mapService.map[x][y].visible = false;
 			}
 		}
-		service.map[service.teamLocation.x][service.teamLocation.y].visible = true;
-		service.map[service.teamLocation.x][service.teamLocation.y].revealed = true;
-		service.validTargets = [];
-		service.registerValidTargets(service.teamLocation, 0);
-		_.each(service.directions, function (direction) {
-			var currentTile = service.teamLocation;
+		mapService.map[mapService.teamLocation.x][mapService.teamLocation.y].visible = true;
+		mapService.map[mapService.teamLocation.x][mapService.teamLocation.y].revealed = true;
+		mapService.validTargets = [];
+		mapService.registerValidTargets(mapService.teamLocation, 0);
+		_.each(mapService.directions, function (direction) {
+			var currentTile = mapService.teamLocation;
 			var distance = 0;
 			var directionOffset = directionOffsets[direction];
 			do {
 				var currentWay = currentTile[direction];
-				if (!service.map[currentTile.x + directionOffset[0]]) {
+				if (!mapService.map[currentTile.x + directionOffset[0]]) {
 					break;
 				}
-				currentTile = service.map[currentTile.x + directionOffset[0]][currentTile.y + directionOffset[1]];
+				currentTile = mapService.map[currentTile.x + directionOffset[0]][currentTile.y + directionOffset[1]];
 				if (!currentTile || !currentWay || currentWay.closed) {
 					break;
 				}
 				currentTile.visible = true;
 				currentTile.revealed = true;
 				distance++;
-				currentTile.teamHeat = service.teamSteps - distance;
-				service.registerValidTargets(currentTile, distance);
+				currentTile.teamHeat = mapService.teamSteps - distance;
+				mapService.registerValidTargets(currentTile, distance);
 				if (currentTile.room || true) {// only 1 sq sight range
 					break;
 				}
 			} while (true);
 		});
-	};
+	},
 
-	service.calculateEnemyPaths = function () {
-		_.each(service.areas, function (currentTile) {
-			var neighbouring = service.getAccessibleAreas(currentTile, true);
+	calculateEnemyPaths () {
+		_.each(mapService.areas, function (currentTile) {
+			var neighbouring = mapService.getAccessibleAreas(currentTile, true);
 			var bestHeat = currentTile.teamHeat;
 			var bestHeatDirection = '';
 			_.each(neighbouring, function (tile, direction) {
@@ -149,51 +145,51 @@ angular.module('ZombieLabApp')
 			});
 			currentTile.enemyDirection = bestHeat !== 0 ? bestHeatDirection : '';
 		});
-	};
+	},
 
-	service.getDirectionPathForTeam = function (direction) {
-		return service.teamLocation[direction];
-	};
+	getDirectionPathForTeam (direction) {
+		return mapService.teamLocation[direction];
+	},
 
-	service.getTileInDirection = function (tile, direction) {
+	getTileInDirection (tile, direction) {
 		var offset = directionOffsets[direction];
-		return service.map[tile.x + offset[0]][tile.y + offset[1]];
-	};
+		return mapService.map[tile.x + offset[0]][tile.y + offset[1]];
+	},
 
-	service.getNextAreaForTeam = function (direction) {
+	getNextAreaForTeam (direction) {
 		if (!direction) {
-			return service.teamLocation;	
+			return mapService.teamLocation;	
 		}
-		return service.map[service.teamLocation.x + directionOffsets[direction][0]][service.teamLocation.y + directionOffsets[direction][1]];
-	};
+		return mapService.map[mapService.teamLocation.x + directionOffsets[direction][0]][mapService.teamLocation.y + directionOffsets[direction][1]];
+	},
 
-	service.isOpen = function (direction, tile) {
-		tile = tile || service.teamLocation;
+	isOpen (direction, tile) {
+		tile = tile || mapService.teamLocation;
 		return tile[direction] && (!tile[direction].door || !tile[direction].closed);
-	};
+	},
 
-	service.isDoor = function (direction, tile) {
-		tile = tile || service.teamLocation;
+	isDoor (direction, tile) {
+		tile = tile || mapService.teamLocation;
 		return tile[direction] && tile[direction].door;
-	};
+	},
 
-	service.openDoor = function (path) {
+	openDoor (path) {
 		path.closed = false;
-		service.checkVisibility();
-		service.calculateEnemyPaths();
-	};
+		mapService.checkVisibility();
+		mapService.calculateEnemyPaths();
+	},
 
-	service.closeDoor = function (path, security) {
+	closeDoor (path, security) {
 		path.closed = true;
 		path.security = security || 0;
-		service.checkVisibility();
-	};
+		mapService.checkVisibility();
+	},
 
-	service.getValidTargets = function () {
-		return service.validTargets;
-	};
+	getValidTargets () {
+		return mapService.validTargets;
+	},
 
-	service.addAnimation = function (tile, animation, duration) {
+	addAnimation (tile, animation, duration) {
 		var idx = _.size(tile.animations);
 		tile.animations[idx] = animation;
 		if (duration) {
@@ -201,6 +197,6 @@ angular.module('ZombieLabApp')
 				delete tile.animations[idx];
 			}, duration);
 		}
-	};
-});
+	}
+};
 

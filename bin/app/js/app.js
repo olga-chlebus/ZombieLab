@@ -2,7 +2,7 @@
 
 const mainMenu = {template: '<main-menu>main-menu</main-menu>'};
 const teamSetup = {template: '<team-setup>team-setup</team-setup>'};
-const game = {template: '<div>game</div>'};
+const game = {template: '<game>game</game>'};
 const other = {template: '<start>start</start>'};
 
 const routes = {

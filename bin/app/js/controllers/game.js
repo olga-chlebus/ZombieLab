@@ -1,11 +1,118 @@
 'use strict';
 
-angular.module('ZombieLabApp')
+Vue.component('game',{
+	data(){
+		return {
+			team: characterService.team,
+			ammo: equipmentService.ammo,
+			teamTired: 0, // indicates taking part in shootout
+			map: mapService.map,
+			lootingRoom: false,
+			selectedCharacter: null,
+			gameReady: false,
+			floor: 1,
+			allHoldFire: false,
+			currentAction: {
+				actionObject: null,
+				target: null,
+				progress: 0
+			}
+		}
+	},
+	methods:{
+		init() {
+			//* START: quick setup /
+			if (characterService.team.length === 0) {
+				//$location.path('main-menu');
+
+				gameService.resetGame();
+
+				characterService.addToTeam(characterService.createNewCharacter(characterService.archetypes['warrior']));
+				characterService.addToTeam(characterService.createNewCharacter(characterService.archetypes['medic']));
+				characterService.addToTeam(characterService.createNewCharacter(characterService.archetypes['hacker']));
+				characterService.addToTeam(characterService.createNewCharacter(characterService.archetypes['grenadier']));
+
+				console.log('---- The team:')
+				console.log(characterService.team);
+				mapGeneratorService.createNewMap();
+				console.log('---- The map:')
+				console.log(mapService.map);
+			}
+			//* END: quick setup /
+
+			$scope.bindKeys();
+
+			$scope.mainLoop();
+
+			gameService.finishLoading(200).then(function () {
+				$scope.gameReady = true;
+			});
+		}
+	},
+	created(){
+		this.init();
+	},
+	template:`
+		<div ng-init="init();" class="game" ng-class="{'game-ready': gameReady}">
+			<div class="team-panel">
+				<div ng-repeat="id in [0,1,2,3]">
+					<character-panel character="team[id]" disable-items="!team[id].alive" character-hold-action="showCharacterInfo(team[id]);" character-click-action="clickCharacter(team[id]);" main-frame="true"></character-panel>
+				</div>
+			</div>
+			<div class="game-area" id="game-area">
+				<div data-ng-repeat="direction in ['N', 'E', 'W', 'S', '']" class="action-direction" ng-class="direction ? direction : 'center'" ng-click="inputDirection(direction);"></div>
+				<div class="team">
+					<div class="pulse"></div>
+				</div>
+				<div class="loot-window" ng-show="lootingRoom">
+					<item-slot ng-repeat="item in getTeamLocation().itemSlots track by $index" slot="loot" item-slot="getTeamLocation().itemSlots[$index]" allowed-large="true" slot-type="floor"></item-slot>
+				</div>
+				<game-map map="map" ng-style="{top: getMapTopOffset(), left: getMapLeftOffset()}"></game-map>
+				<div class="top-left-info-panel">
+					FLOOR: {{floor}}
+					<div class="team-caution" data-ng-show="teamTired > 0">
+						CAUTION!
+					</div>
+				</div>
+				<div class="ammo-status">
+					<div class="ammo-slot" v-for="(quantity, type) in ammo"><img class="ammo-icon" :src="'imgs/items/ammo/' + type + '.png'" />{{quantity}}</div>
+				</div>
+				<div class="action-panel">
+					<div class="action-progress" ng-show="currentAction.actionObject">
+						<div class="progress-bar" ng-style="{width: currentAction.progress / 10 + '%'}"></div>
+					</div>
+					<div class="action hold-fire" data-ng-click="toggleHoldFire();">{{allHoldFire ? 'FIRE' : 'HOLD'}}</div>
+					<div class="action next-level" ng-show="canFinishLevel();" ng-click="finishLevel();">></div>
+					<div class="action search" ng-show="canSearchRoom();" ng-click="searchRoom();">Search</div>
+					<div class="action cancel" ng-show="currentAction.actionObject" data-ng-click="cancelAction();">X</div>
+				</div>
+			</div>
+			<div class="game-over" data-ng-show="isGameOver();">
+				<div class="big-button-wrapper">
+					<div class="big-button" ng-click="backToMenu();">
+						Back to Menu
+					</div>
+				</div>
+			</div>
+
+			<script type="text/ng-template" id="character-info-modal.html">
+				<div class="character-info-modal">
+					<character-panel character="selectedCharacter" disable-items="true"></character-panel>
+					<div class="skills">
+						<skill-bar ng-repeat="(skill, value) in selectedCharacter.skills" skill="skill" value="value"></skill-bar>
+					</div>
+					<div ng-click="$close();" class="modal-close">X</div>
+				</div>
+			</script>
+		</div>`
+});
+
+/*angular.module('ZombieLabApp')
 
 .controller('gameController', function ($scope, $location, $document, $interval, modalService, characterService, enemyService, mapService, mapGeneratorService, gameService, equipmentService, eventService) {
 	var controller = this;
 
-	$scope.model = {
+	$scope.= {
 		team: characterService.team,
 		ammo: equipmentService.ammo,
 		teamTired: 0, // indicates taking part in shootout
@@ -26,51 +133,51 @@ angular.module('ZombieLabApp')
 		actions = {
 			openDoor: {
 				progress: function (delta) {
-					$scope.model.currentAction.progress += delta / (0.2 + Math.pow($scope.model.currentAction.target.security, 3) * 5);
+					$scope.currentAction.progress += delta / (0.2 + Math.pow($scope.currentAction.target.security, 3) * 5);
 				},
 				complete: function () {
-					mapService.openDoor($scope.model.currentAction.target);
+					mapService.openDoor($scope.currentAction.target);
 				}
 			},
 			walk: {
 				start: function () {
-					$scope.model.currentAction.target.teamWalkingTo = true;
+					$scope.currentAction.target.teamWalkingTo = true;
 				},
 				progress: function (delta) {
-					$scope.model.currentAction.progress += delta / ($scope.model.teamTired > 0 ? 1.2 : 0.4);
+					$scope.currentAction.progress += delta / ($scope.teamTired > 0 ? 1.2 : 0.4);
 				},
 				complete: function () {
-					$scope.model.currentAction.target.teamWalkingTo = false;
-					mapService.moveTeam($scope.model.currentAction.target);
+					$scope.currentAction.target.teamWalkingTo = false;
+					mapService.moveTeam($scope.currentAction.target);
 				},
 				cancel: function () {
-					$scope.model.currentAction.target.teamWalkingTo = false;
+					$scope.currentAction.target.teamWalkingTo = false;
 				}
 			},
 			searchRoom: {
 				start: function () {
 				},
 				progress: function (delta) {
-					$scope.model.currentAction.target.searchProgress += delta / ($scope.model.teamTired > 0 ? 2 : 1);
-					$scope.model.currentAction.progress = 1000 * $scope.model.currentAction.target.searchProgress / 2000;
+					$scope.currentAction.target.searchProgress += delta / ($scope.teamTired > 0 ? 2 : 1);
+					$scope.currentAction.progress = 1000 * $scope.currentAction.target.searchProgress / 2000;
 				},
 				complete: function () {
-					$scope.model.lootingRoom = true;
+					$scope.lootingRoom = true;
 				},
 				cancel: function () {
 				}
 			},
 			useItem: {
 				start: function () {
-					$scope.model.currentAction.itemOwner = gameService.getSelectedItemOwner();
-					if ($scope.model.currentAction.itemOwner) {
-						$scope.model.currentAction.itemSlot = gameService.getSelectedItemSlot();
-						$scope.model.currentAction.item = gameService.getSelectedItem();
-						$scope.model.currentAction.itemSlot.inUse = true;
-						$scope.model.currentAction.itemOwner.active = false;
-						if ($scope.model.currentAction.item.model.useChargeAtStart) {
-							if ($scope.model.currentAction.item.charges && !(--$scope.model.currentAction.item.charges)) {
-								$scope.model.currentAction.itemSlot.item = null;
+					$scope.currentAction.itemOwner = gameService.getSelectedItemOwner();
+					if ($scope.currentAction.itemOwner) {
+						$scope.currentAction.itemSlot = gameService.getSelectedItemSlot();
+						$scope.currentAction.item = gameService.getSelectedItem();
+						$scope.currentAction.itemSlot.inUse = true;
+						$scope.currentAction.itemOwner.active = false;
+						if ($scope.currentAction.item.useChargeAtStart) {
+							if ($scope.currentAction.item.charges && !(--$scope.currentAction.item.charges)) {
+								$scope.currentAction.itemSlot.item = null;
 							}
 						}
 					} else {
@@ -78,16 +185,16 @@ angular.module('ZombieLabApp')
 					}
 				},
 				progress: function (delta) {
-					if ($scope.model.currentAction.itemOwner.canPerformAction()) {
+					if ($scope.currentAction.itemOwner.canPerformAction()) {
 						var continueAction = true;
-						var timeTaken = $scope.model.currentAction.item.model.actionTime;
-						if ($scope.model.currentAction.item.model.progress) {
-							continueAction = $scope.model.currentAction.item.model.progress($scope.model.currentAction.itemSlot, $scope.model.currentAction.itemOwner, $scope.model.currentAction.target, delta / (timeTaken * 10));
+						var timeTaken = $scope.currentAction.item.actionTime;
+						if ($scope.currentAction.item.progress) {
+							continueAction = $scope.currentAction.item.progress($scope.currentAction.itemSlot, $scope.currentAction.itemOwner, $scope.currentAction.target, delta / (timeTaken * 10));
 						}
 						if (timeTaken) {
-							$scope.model.currentAction.progress += delta / timeTaken;
+							$scope.currentAction.progress += delta / timeTaken;
 						} else {
-							$scope.model.currentAction.progress += delta / continueAction;
+							$scope.currentAction.progress += delta / continueAction;
 						}
 						if (!continueAction) {
 							$scope.cancelAction();
@@ -97,24 +204,24 @@ angular.module('ZombieLabApp')
 					}
 				},
 				complete: function () {
-					$scope.model.currentAction.item.model.use($scope.model.currentAction.itemSlot, $scope.model.currentAction.itemOwner, $scope.model.currentAction.target);
-					$scope.model.currentAction.itemSlot.inUse = false;
-					$scope.model.currentAction.itemOwner.active = true;
-					if (!$scope.model.currentAction.item.model.useChargeAtStart) {
-						if ($scope.model.currentAction.item.charges && !(--$scope.model.currentAction.item.charges)) {
-							$scope.model.currentAction.itemSlot.item = null;
+					$scope.currentAction.item.use($scope.currentAction.itemSlot, $scope.currentAction.itemOwner, $scope.currentAction.target);
+					$scope.currentAction.itemSlot.inUse = false;
+					$scope.currentAction.itemOwner.active = true;
+					if (!$scope.currentAction.item.useChargeAtStart) {
+						if ($scope.currentAction.item.charges && !(--$scope.currentAction.item.charges)) {
+							$scope.currentAction.itemSlot.item = null;
 						}
 					}
-					$scope.model.currentAction.item = null;
-					$scope.model.currentAction.itemOwner = null;
+					$scope.currentAction.item = null;
+					$scope.currentAction.itemOwner = null;
 				},
 				cancel: function () {
-					if ($scope.model.currentAction.itemOwner) {
-						$scope.model.currentAction.itemOwner.active = true;
-						$scope.model.currentAction.itemSlot.inUse = false;
+					if ($scope.currentAction.itemOwner) {
+						$scope.currentAction.itemOwner.active = true;
+						$scope.currentAction.itemSlot.inUse = false;
 					}
-					$scope.model.currentAction.item = null;
-					$scope.model.currentAction.itemOwner = null;
+					$scope.currentAction.item = null;
+					$scope.currentAction.itemOwner = null;
 				}
 			}
 		};
@@ -128,7 +235,7 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.showCharacterInfo = function (character) {
-		$scope.model.selectedCharacter = character;
+		$scope.selectedCharacter = character;
 		gameService.pause();
 		var modal = modalService.open({
 			template: 'character-info-modal.html',
@@ -143,7 +250,7 @@ angular.module('ZombieLabApp')
 	$scope.clickCharacter = function (character) {
 		if (gameService.isItemSelected()) {
 			var item = gameService.getSelectedItem();
-			if (item.model.target === 'character' && character.alive) {
+			if (item.target === 'character' && character.alive) {
 				$scope.startAction(actions.useItem, character);
 			}
 			gameService.deselectItem();
@@ -184,8 +291,8 @@ angular.module('ZombieLabApp')
 			return;
 		};
 		$scope.finishSearching();
-		if ($scope.model.currentAction.actionObject) {
-			if ($scope.isTeamMoving() && (!direction || $scope.model.currentAction.target !== mapService.getNextAreaForTeam(direction))) {
+		if ($scope.currentAction.actionObject) {
+			if ($scope.isTeamMoving() && (!direction || $scope.currentAction.target !== mapService.getNextAreaForTeam(direction))) {
 				// user tapped another direction
 				$scope.cancelAction();
 			}
@@ -193,7 +300,7 @@ angular.module('ZombieLabApp')
 		}
 		if (gameService.isItemSelected()) {
 			var item = gameService.getSelectedItem();
-			if (item.model.target === 'area') {
+			if (item.target === 'area') {
 				$scope.startAction(actions.useItem, direction);
 			}
 			gameService.deselectItem();
@@ -212,16 +319,16 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.isTeamMoving = function () {
-		return $scope.model.currentAction.actionObject === actions.walk;
+		return $scope.currentAction.actionObject === actions.walk;
 	};
 
 	$scope.startAction = function (action, target) {
-		if (!$scope.model.currentAction.actionObject) {
-			$scope.model.currentAction.actionObject = action;
-			$scope.model.currentAction.progress = 0;
-			$scope.model.currentAction.target = target;
-			if ($scope.model.currentAction.actionObject.start) {
-				$scope.model.currentAction.actionObject.start();
+		if (!$scope.currentAction.actionObject) {
+			$scope.currentAction.actionObject = action;
+			$scope.currentAction.progress = 0;
+			$scope.currentAction.target = target;
+			if ($scope.currentAction.actionObject.start) {
+				$scope.currentAction.actionObject.start();
 			}
 		} else {
 			console.error('Another action in progress');
@@ -229,12 +336,12 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.cancelAction = function () {
-		if ($scope.model.currentAction.actionObject.cancel) {
-			$scope.model.currentAction.actionObject.cancel();
+		if ($scope.currentAction.actionObject.cancel) {
+			$scope.currentAction.actionObject.cancel();
 		}
-		$scope.model.currentAction.actionObject = null;
-		$scope.model.currentAction.progress = 0;
-		$scope.model.currentAction.target = null;
+		$scope.currentAction.actionObject = null;
+		$scope.currentAction.progress = 0;
+		$scope.currentAction.target = null;
 	};
 
 	$scope.mainLoop = function () {
@@ -279,17 +386,17 @@ angular.module('ZombieLabApp')
 	};
 
 	controller.updateTeamSpeed = function (delta) {
-		if ($scope.model.teamTired > 0) {
-			$scope.model.teamTired -= delta;
+		if ($scope.teamTired > 0) {
+			$scope.teamTired -= delta;
 		}
 	};
 
 	controller.progressAction = function (delta) {
-		if ($scope.model.currentAction.actionObject) {
-			$scope.model.currentAction.actionObject.progress(delta);
-			if ($scope.model.currentAction.progress >= 1000) {
-				$scope.model.currentAction.actionObject.complete();
-				$scope.model.currentAction.actionObject = null;
+		if ($scope.currentAction.actionObject) {
+			$scope.currentAction.actionObject.progress(delta);
+			if ($scope.currentAction.progress >= 1000) {
+				$scope.currentAction.actionObject.complete();
+				$scope.currentAction.actionObject = null;
 			}
 		}
 	};
@@ -297,17 +404,17 @@ angular.module('ZombieLabApp')
 	controller.doTheShooting = function (delta) {
 		_.each(_.shuffle(characterService.team), function (character) {
 			if (character.canShoot() && character.weapon.item && character.weapon.item.isWeapon()) {
-				if ((character.weapon.item.ammo > 0 || !character.weapon.item.model.clipSize) && character.reloadingTimer <= 0) {
+				if ((character.weapon.item.ammo > 0 || !character.weapon.item.clipSize) && character.reloadingTimer <= 0) {
 					if (!character.holdFire) {
 						var validTargets = _.groupBy(mapService.getValidTargets(), 'distance');
 						var target = null;
 						_.each(validTargets, function (targetsGroup, distance) {
-							if (!target && character.weapon.item.model.range >= distance) {
+							if (!target && character.weapon.item.range >= distance) {
 								target = _.sample(targetsGroup);
 							}
 						});
 						if (target) {
-							$scope.model.teamTired = 3000;
+							$scope.teamTired = 3000;
 							if (character.rofTimer <= 0) {
 								controller.shootAt(target, character);
 								character.resetAim();
@@ -327,7 +434,7 @@ angular.module('ZombieLabApp')
 	};
 
 	controller.shootAt = function (target, character) {
-		var chanceToHit = character.weapon.item.model.baseChanceToHit * character.skillModifier('weapons', character.weapon.item.model.skillRequired);
+		var chanceToHit = character.weapon.item.baseChanceToHit * character.skillModifier('weapons', character.weapon.item.skillRequired);
 
 		character.weapon.item.ammo -= 1;
 		if (character.weapon.item.ammo === 0) {
@@ -336,7 +443,7 @@ angular.module('ZombieLabApp')
 
 		var weaponFrame = character.$element.find('.weapon');
 		if (_.random(1, 100) < chanceToHit) {
-			enemyService.damage(target.enemy, _.random(character.weapon.item.model.dmgMin, character.weapon.item.model.dmgMax));
+			enemyService.damage(target.enemy, _.random(character.weapon.item.dmgMin, character.weapon.item.dmgMax));
 			weaponFrame.find('.weapon-miss').css({opacity: 0});
 			// TODO: turn into CSS animation to support Zepto  in some shape or form
 			weaponFrame.find('.weapon-hit').stop(true).css({opacity: 1}).animate({opacity: 1}, 600, function () {
@@ -356,7 +463,7 @@ angular.module('ZombieLabApp')
 		enemy.attackTimer += _.random(900, 1100); // fixed for now
 		var attackedTeamMember = _.sample(characterService.getAliveMembers());
 		if (attackedTeamMember) {
-			$scope.model.teamTired = 3000;
+			$scope.teamTired = 3000;
 			attackedTeamMember.damage(_.random(Math.floor(enemy.type.damage * 0.8), enemy.type.damage));
 		};
 	};
@@ -398,15 +505,15 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.checkIfAllHoldFire = function () {
-		$scope.model.allHoldFire = true;
+		$scope.allHoldFire = true;
 		_.each(characterService.team, function (character) {
-			$scope.model.allHoldFire = $scope.model.allHoldFire && character.holdFire;
+			$scope.allHoldFire = $scope.allHoldFire && character.holdFire;
 		});
 	};
 
 	$scope.toggleHoldFire = function () {
 		_.each(characterService.team, function (character) {
-			character.holdFire = !$scope.model.allHoldFire;
+			character.holdFire = !$scope.allHoldFire;
 		});
 		$scope.checkIfAllHoldFire();
 	};
@@ -425,7 +532,7 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.canSearchRoom = function () {
-		return mapService.teamLocation.hasItems() && mapService.teamLocation.isLit() && !$scope.model.currentAction.actionObject;
+		return mapService.teamLocation.hasItems() && mapService.teamLocation.isLit() && !$scope.currentAction.actionObject;
 	};
 
 	$scope.searchRoom = function () {
@@ -433,17 +540,17 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.finishSearching = function () {
-		$scope.model.lootingRoom = false;
+		$scope.lootingRoom = false;
 	};
 
 	$scope.finishLevel = function () {
-		$scope.model.gameReady = false;
+		$scope.gameReady = false;
 		gameService.startLoading().then(function () {
 			gameService.increaseDifficulty();
 			mapGeneratorService.createNewMap();
-			$scope.model.floor++;
+			$scope.floor++;
 			gameService.finishLoading(200).then(function () {
-				$scope.model.gameReady = true;
+				$scope.gameReady = true;
 			});
 		});
 	};
@@ -453,7 +560,7 @@ angular.module('ZombieLabApp')
 	};
 
 	$scope.init = function () {
-		/* START: quick setup */
+		//* START: quick setup /
 		if (characterService.team.length === 0) {
 			//$location.path('main-menu');
 
@@ -470,14 +577,14 @@ angular.module('ZombieLabApp')
 			console.log('---- The map:')
 			console.log(mapService.map);
 		}
-		/* END: quick setup */
+		//* END: quick setup /
 
 		$scope.bindKeys();
 
 		$scope.mainLoop();
 
 		gameService.finishLoading(200).then(function () {
-			$scope.model.gameReady = true;
+			$scope.gameReady = true;
 		});
 	};
-});
+});*/
